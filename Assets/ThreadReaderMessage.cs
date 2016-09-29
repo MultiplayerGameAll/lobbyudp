@@ -9,6 +9,9 @@ public class ThreadReaderMessage {
 
     private NetworkStream stream;
 
+    /**
+     * Tamanho do buffer de leitura
+     */
     private const int BUFFER_SIZE = 1024;
 
     private List<Mensagem> mensagens = new List<Mensagem>();
