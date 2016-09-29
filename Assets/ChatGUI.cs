@@ -74,7 +74,7 @@ public class ChatGUI : MonoBehaviour
             mensagem = GUI.TextField(new Rect(10, 220, 300, 20), mensagem, 25);
             if (GUI.Button(new Rect(310, 220, 90, 20), "Enviar"))
             {
-                mode = CLIENT_STARTED;
+
             }
         }
 
@@ -132,11 +132,6 @@ public class ChatGUI : MonoBehaviour
 
             Thread.Sleep(500);
         }
-    }
-
-    private void lerMensagem(NetworkStream stream)
-    {
-
     }
 
     void OnApplicationQuit()
