@@ -27,6 +27,12 @@ public class ChatGUI : MonoBehaviour
     // Use this for initialization
     void Start()
     {
+        Request req = new Request();
+        req.body = "corpo";
+        req.nick = "teste";
+        req.type = "tipo";
+
+        Debug.Log(JsonUtility.ToJson(req));
 
     }
 
@@ -106,21 +112,20 @@ public class ChatGUI : MonoBehaviour
     {
         while(mode == SERVER_STARTED || mode == CLIENT_STARTED)
         {
-            List<Mensagem> mensagensList = new List<Mensagem>();
+            List<Request> mensagensList = new List<Request>();
             foreach(ThreadReaderMessage trm in readers)
             {
                 mensagensList.AddRange(trm.getMensagens());
             }
-            mensagensList.Sort(delegate (Mensagem i1, Mensagem i2)
+            mensagensList.Sort(delegate (Request i1, Request i2)
             {
                 return (int)(i1.instant - i2.instant);
             });
 
             string mensagensProv = "";
-            foreach(Mensagem msg in mensagensList)
+            foreach(Request msg in mensagensList)
             {
-                Debug.Log(msg.message);
-                mensagensProv += msg.message + "\n";
+                mensagensProv += msg.nick + ": " + msg.body + "\n";
             }
 
             mensagens = mensagensProv;

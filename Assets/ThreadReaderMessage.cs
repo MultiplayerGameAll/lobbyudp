@@ -14,7 +14,9 @@ public class ThreadReaderMessage {
      */
     private const int BUFFER_SIZE = 1024;
 
-    private List<Mensagem> mensagens = new List<Mensagem>();
+    private const string SEND_MESSAGE = "SEND_MESSAGE";
+
+    private List<Request> mensagens = new List<Request>();
 
     private bool active = true;
 
@@ -31,6 +33,18 @@ public class ThreadReaderMessage {
         active = false;
     }
 
+    private void proccessRequest(string json)
+    {
+        Request request = JsonUtility.FromJson<Request>(json);
+        Debug.Log(json);
+        if(request.type == SEND_MESSAGE)
+        {
+            mensagens.Add(request);
+
+        }
+
+    }
+
     public void read()
     {
         byte[] buffer = new byte[BUFFER_SIZE];
@@ -44,17 +58,14 @@ public class ThreadReaderMessage {
                 
                 int splitpoint = message.IndexOf("###");
                 string msg = message.Substring(0, splitpoint);
-                Mensagem msgObj = new Mensagem();
-                msgObj.message = msg;
-                msgObj.nick = nick;
                 message = message.Substring(splitpoint + 3);
-                mensagens.Add(msgObj);
-                Debug.Log(msg);
+
+                proccessRequest(msg);
             }
         }
     }
 
-    public List<Mensagem> getMensagens()
+    public List<Request> getMensagens()
     {
         return mensagens;
     }
