@@ -68,16 +68,32 @@ public class ChatGUI : MonoBehaviour
                 mode = CLIENT_STARTED;
             }
         }
-        else if (mode == SERVER_STARTED || mode == SERVER_STARTED)
+        else if (mode == SERVER_STARTED || mode == CLIENT_STARTED)
         {
             mensagens = GUI.TextArea(new Rect(10, 10, 400, 200), mensagens, 500);
             mensagem = GUI.TextField(new Rect(10, 220, 300, 20), mensagem, 25);
             if (GUI.Button(new Rect(310, 220, 90, 20), "Enviar"))
             {
-
+                sendMessage(mensagem);
+                mensagem = "";
             }
         }
 
+    }
+
+    private void sendMessage(string message)
+    {
+        if (mode == SERVER_STARTED)
+        {
+            foreach (ThreadReaderMessage trm in readers)
+            {
+                trm.sendMessage(message);
+            }
+        }
+        else if (mode == CLIENT_STARTED)
+        {
+
+        }
     }
 
     private void startServer()
@@ -92,8 +108,8 @@ public class ChatGUI : MonoBehaviour
             while (mode == SERVER_STARTED)
             {
                 TcpClient client = client = listener.AcceptTcpClient();
-                NetworkStream stream = client.GetStream();
-                ThreadReaderMessage trm = new ThreadReaderMessage(stream);
+                NetworkStream streamServer = client.GetStream();
+                ThreadReaderMessage trm = new ThreadReaderMessage(nick, streamServer);
                 readers.Add(trm);
                 Thread thread = new Thread(trm.read);
                 thread.Start();

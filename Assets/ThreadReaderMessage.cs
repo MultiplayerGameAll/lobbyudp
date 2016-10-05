@@ -23,8 +23,9 @@ public class ThreadReaderMessage {
     private string nick;
 
 
-    public ThreadReaderMessage(NetworkStream stream)
+    public ThreadReaderMessage(string nick, NetworkStream stream)
     {
+        this.nick = nick;
         this.stream = stream;
     }
 
@@ -43,6 +44,18 @@ public class ThreadReaderMessage {
 
         }
 
+    }
+
+    public void sendMessage(string message)
+    {
+        Request request = new Request();
+        request.body = message;
+        request.type = SEND_MESSAGE;
+        request.nick = nick;
+        string json = JsonUtility.ToJson(request) + "###";
+        byte[] bytesToSend = Encoding.ASCII.GetBytes(json);
+        stream.Write(bytesToSend, 0, bytesToSend.Length);
+        stream.Flush();
     }
 
     public void read()
