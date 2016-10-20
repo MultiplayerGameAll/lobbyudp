@@ -49,33 +49,9 @@ public class ChatGUI : MonoBehaviour
             GUI.Label(new Rect(10, 10, 50, 20), "Nick");
             nick = GUI.TextField(new Rect(60, 10, 200, 20), nick, 25);
 
-            GUI.Label(new Rect(10, 35, 50, 20), "IP");
-            ip = GUI.TextField(new Rect(60, 35, 200, 20), ip, 25);
-
-            if (GUI.Button(new Rect(60, 60, 90, 20), "Servidor"))
+            if (GUI.Button(new Rect(60, 60, 90, 20), "Entrar"))
             {
-                mode = SERVER_STARTED;
-                Thread thread = new Thread(startServer);
-                thread.Start();
-
-                Thread threadAtualizadora = new Thread(atualizarMensagens);
-                threadAtualizadora.Start();
-
-
-            }
-            if (GUI.Button(new Rect(160, 60, 90, 20), "Cliente"))
-            {
-                mode = CLIENT_STARTED;
-            }
-        }
-        else if (mode == SERVER_STARTED || mode == CLIENT_STARTED)
-        {
-            mensagens = GUI.TextArea(new Rect(10, 10, 400, 200), mensagens, 500);
-            mensagem = GUI.TextField(new Rect(10, 220, 300, 20), mensagem, 25);
-            if (GUI.Button(new Rect(310, 220, 90, 20), "Enviar"))
-            {
-                sendMessage(mensagem);
-                mensagem = "";
+                Broadcast.startBroadcast(nick);
             }
         }
 
@@ -152,6 +128,7 @@ public class ChatGUI : MonoBehaviour
 
     void OnApplicationQuit()
     {
+        Broadcast.stop();
         mode = INIT;
         foreach (ThreadReaderMessage trm in readers)
         {
