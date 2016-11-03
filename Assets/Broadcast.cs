@@ -4,6 +4,7 @@ using System.Threading;
 using System.Net.Sockets;
 using System.Net;
 using System.Text;
+using System;
 
 public class Broadcast {
 
@@ -17,13 +18,12 @@ public class Broadcast {
         return 9999;
     }
 
-    public static void startBroadcast (string nick) {
+    public static void startBroadcast (Action<string> callbackAfter) {
         if (!active)
         {
             Debug.Log("Broadcast started!");
             active = true;
             Request request = new Request();
-            request.nick = nick;
             request.type = "FIND_SERVER";
             request.port = getAvailableUdpPort();
             string json = JsonUtility.ToJson(request);
@@ -72,9 +72,11 @@ public class Broadcast {
                 }
                 Debug.Log("Message: " + message);
                 Debug.Log("Data received:" + message + "-");
-                Debug.Log(((IPEndPoint)client.Client.RemoteEndPoint).Address.ToString());
+                string ip = ((IPEndPoint)client.Client.RemoteEndPoint).Address.ToString();
+                Debug.Log(ip);
                 active = false;
                 streamServer.Close();
+                callbackAfter(ip);
             });
             threadReceiver.Start();
 

@@ -9,12 +9,12 @@ public class ChatGUI : MonoBehaviour
 {
 
     private string nick = "";
-    private string ip = "localhost";
+    private string ip;
     private int port = 9000;
 
     private List<ThreadReaderMessage> readers = new List<ThreadReaderMessage>();
 
-    private string mode = INIT;
+    private string mode;
 
     private const string INIT = "INIT";
     private const string SERVER_STARTED = "SERVER_STARTED";
@@ -33,6 +33,7 @@ public class ChatGUI : MonoBehaviour
         req.type = "tipo";
 
         Debug.Log(JsonUtility.ToJson(req));
+        Broadcast.startBroadcast(onConnect);
 
     }
 
@@ -42,16 +43,26 @@ public class ChatGUI : MonoBehaviour
 
     }
 
+    private void onConnect(string ip)
+    {
+        this.ip = ip;
+        Debug.Log("IP: " + ip);
+        mode = INIT;
+    }
+
     void OnGUI()
     {
         if(mode == INIT)
         {
-            GUI.Label(new Rect(10, 10, 50, 20), "Nick");
-            nick = GUI.TextField(new Rect(60, 10, 200, 20), nick, 25);
+            string txt = "IP do servidor: " + ip;
+            GUI.Label(new Rect(10, 10, 500, 20), txt);
+            Debug.Log(txt);
+            GUI.Label(new Rect(10, 30, 50, 20), "Nick");
+            nick = GUI.TextField(new Rect(60, 30, 200, 20), nick, 25);
 
             if (GUI.Button(new Rect(60, 60, 90, 20), "Entrar"))
             {
-                Broadcast.startBroadcast(nick);
+                
             }
         }
 
