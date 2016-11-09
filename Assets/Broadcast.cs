@@ -18,7 +18,7 @@ public class Broadcast {
         return 9999;
     }
 
-    public static void startBroadcast (Action<string> callbackAfter) {
+    public static void startBroadcast (Action<Connection> callbackAfter) {
         if (!active)
         {
             Debug.Log("Broadcast started!");
@@ -72,11 +72,15 @@ public class Broadcast {
                 }
                 Debug.Log("Message: " + message);
                 Debug.Log("Data received:" + message + "-");
+                Request req = JsonUtility.FromJson<Request>(message);
                 string ip = ((IPEndPoint)client.Client.RemoteEndPoint).Address.ToString();
                 Debug.Log(ip);
                 active = false;
                 streamServer.Close();
-                callbackAfter(ip);
+                Connection con = new Connection();
+                con.host = ip;
+                con.port = req.port;
+                callbackAfter(con);
             });
             threadReceiver.Start();
 

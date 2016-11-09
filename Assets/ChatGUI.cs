@@ -10,31 +10,25 @@ public class ChatGUI : MonoBehaviour
 
     private string nick = "";
     private string ip;
-    private int port = 9000;
-
-    private List<ThreadReaderMessage> readers = new List<ThreadReaderMessage>();
+    private int port;
 
     private string mode;
 
     private const string INIT = "INIT";
-    private const string SERVER_STARTED = "SERVER_STARTED";
-    private const string CLIENT_STARTED = "CLIENT_STARTED";
+    private const string CHAT = "CHAT";
 
-    private string mensagens = "";
+    private string messages = "";
 
-    private string mensagem = "";
+    private string message = "";
+
+    private Chat chat;
+
+    Queue<Request> messagesQueue = new Queue<Request>();
 
     // Use this for initialization
     void Start()
     {
-        Request req = new Request();
-        req.body = "corpo";
-        req.nick = "teste";
-        req.type = "tipo";
-
-        Debug.Log(JsonUtility.ToJson(req));
         Broadcast.startBroadcast(onConnect);
-
     }
 
     // Update is called once per frame
@@ -43,10 +37,11 @@ public class ChatGUI : MonoBehaviour
 
     }
 
-    private void onConnect(string ip)
+    private void onConnect(Connection con)
     {
-        this.ip = ip;
-        Debug.Log("IP: " + ip);
+        this.ip = con.host;
+        this.port = con.port;
+        Debug.Log("IP: " + ip + ":" + port);
         mode = INIT;
     }
 
@@ -54,96 +49,53 @@ public class ChatGUI : MonoBehaviour
     {
         if(mode == INIT)
         {
-            string txt = "IP do servidor: " + ip;
+            string txt = "IP do servidor: " + ip + ":" + port;
             GUI.Label(new Rect(10, 10, 500, 20), txt);
-            Debug.Log(txt);
             GUI.Label(new Rect(10, 30, 50, 20), "Nick");
             nick = GUI.TextField(new Rect(60, 30, 200, 20), nick, 25);
 
             if (GUI.Button(new Rect(60, 60, 90, 20), "Entrar"))
             {
-                
+                this.chat = Chat.startChat(nick, ip, port, updateMessage);
+                this.mode = CHAT;
             }
         }
-
-    }
-
-    private void sendMessage(string message)
-    {
-        if (mode == SERVER_STARTED)
+        if (mode == CHAT)
         {
-            foreach (ThreadReaderMessage trm in readers)
+            GUI.Label(new Rect(10, 30, 50, 20), "Mensagem:");
+            message = GUI.TextField(new Rect(60, 30, 200, 20), message, 25);
+            if (GUI.Button(new Rect(270, 30, 100, 20), "Enviar"))
             {
-                trm.sendMessage(message);
+                Request request = new Request();
+                request.nick = nick;
+                request.type = "SEND_CHAT";
+                request.body = message;
+                string json = JsonUtility.ToJson(request);
+                this.chat.send(json);
+                message = "";
             }
-        }
-        else if (mode == CLIENT_STARTED)
-        {
-
-        }
-    }
-
-    private void startServer()
-    {
-        TcpListener listener = null;
-        Debug.Log("Server started.");
-
-        try
-        {
-            listener = new TcpListener(IPAddress.Any, port);
-            listener.Start();
-            while (mode == SERVER_STARTED)
+            while(messagesQueue.Count > 0)
             {
-                TcpClient client = client = listener.AcceptTcpClient();
-                NetworkStream streamServer = client.GetStream();
-                ThreadReaderMessage trm = new ThreadReaderMessage(nick, streamServer);
-                readers.Add(trm);
-                Thread thread = new Thread(trm.read);
-                thread.Start();
-
-
+                Request req = messagesQueue.Dequeue();
+                messages += req.nick + ":" + req.body + "\n";
             }
-            listener.Stop();
-        }
-        catch (SocketException e)
-        {
-            Debug.Log("Error on open socket. " + e.Message);
+            GUI.TextArea(new Rect(10, 50, 300, 200), messages);
         }
     }
 
-    private void atualizarMensagens()
-    {
-        while(mode == SERVER_STARTED || mode == CLIENT_STARTED)
-        {
-            List<Request> mensagensList = new List<Request>();
-            foreach(ThreadReaderMessage trm in readers)
-            {
-                mensagensList.AddRange(trm.getMensagens());
-            }
-            mensagensList.Sort(delegate (Request i1, Request i2)
-            {
-                return (int)(i1.instant - i2.instant);
-            });
 
-            string mensagensProv = "";
-            foreach(Request msg in mensagensList)
-            {
-                mensagensProv += msg.nick + ": " + msg.body + "\n";
-            }
-
-            mensagens = mensagensProv;
-
-            Thread.Sleep(500);
-        }
-    }
 
     void OnApplicationQuit()
     {
         Broadcast.stop();
-        mode = INIT;
-        foreach (ThreadReaderMessage trm in readers)
-        {
-            trm.deactive();
-        }
+        chat.deactivate();
+        mode = null;
+    }
+
+    public void updateMessage(string msg)
+    {
+        Request req = JsonUtility.FromJson<Request>(msg);
+        messagesQueue.Enqueue(req);
+        Debug.Log(msg);
     }
 }
