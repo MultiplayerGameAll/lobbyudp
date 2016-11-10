@@ -4,6 +4,7 @@ using System.Net.Sockets;
 using System.Net;
 using System.Threading;
 using System.Collections.Generic;
+using UnityEngine.Experimental.Networking;
 
 public class ChatGUI : MonoBehaviour
 {
@@ -28,6 +29,7 @@ public class ChatGUI : MonoBehaviour
     // Use this for initialization
     void Start()
     {
+        StartCoroutine(GetText());
         Broadcast.startBroadcast(onConnect);
     }
 
@@ -37,6 +39,28 @@ public class ChatGUI : MonoBehaviour
 
     }
 
+
+    IEnumerator GetText()
+    {
+        UnityWebRequest www = UnityWebRequest.Get("http://localhost/restserver-game/services/example/listItems");
+        yield return www.Send();
+
+        if (www.isError)
+        {
+            Debug.Log(www.error);
+        }
+        else
+        {
+            // Show json results as text
+            string json = www.downloadHandler.text;
+            Debug.Log(json);
+
+            // Or convert result from json
+            //Item item = JsonUtility.FromJson<Item>(json);
+            //Debug.Log("Name: " + item.name);
+            //Debug.Log("Value: " + item.value);
+        }
+    }
     private void onConnect(Connection con)
     {
         this.ip = con.host;
