@@ -18,6 +18,6 @@ public class Player {
 
     public string facebookId;
 
-    public List<Item> itens;
+    public Item[] itens;
 
 }
